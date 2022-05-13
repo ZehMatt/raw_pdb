@@ -1,52 +1,43 @@
-// Copyright 2011-2022, Molecular Matters GmbH <office@molecular-matters.com>
-// See LICENSE.txt for licensing details (2-clause BSD License: https://opensource.org/licenses/BSD-2-Clause)
-
 #pragma once
 
 #include "PDB_Platform.h"
-#include "PDB_Assert.h"
 
-#include <type_traits>
 #include <cstdint>
+#include <type_traits>
 #if PDB_COMPILER_MSVC
-#include <intrin.h>
+#    include <intrin.h>
 #endif
+#include <cassert>
 
-namespace PDB
+namespace libpdb
 {
     namespace BitUtil
     {
-        template <typename T>
-        PDB_NO_DISCARD inline constexpr bool IsPowerOfTwo(T value) PDB_NO_EXCEPT
+        template<typename T> [[nodiscard]] inline constexpr bool IsPowerOfTwo(T value) noexcept
         {
             static_assert(std::is_unsigned<T>::value == true, "T must be an unsigned type.");
 
-            PDB_ASSERT(value != 0u);
+            assert(value != 0u);
 
             return (value & (value - 1u)) == 0u;
         }
 
-
-        template <typename T>
-        PDB_NO_DISCARD inline constexpr T RoundUpToMultiple(T numToRound, T multipleOf) PDB_NO_EXCEPT
+        template<typename T> [[nodiscard]] inline constexpr T RoundUpToMultiple(T numToRound, T multipleOf) noexcept
         {
             static_assert(std::is_unsigned<T>::value == true, "T must be an unsigned type.");
 
-            PDB_ASSERT(IsPowerOfTwo(multipleOf));
+            assert(IsPowerOfTwo(multipleOf));
 
             return (numToRound + (multipleOf - 1u)) & ~(multipleOf - 1u);
         }
 
+        // Finds the position of the first set bit in the given value starting from the LSB, e.g. FindFirstSetBit(0b00000010)
+        // == 1. This operation is also known as CTZ (Count Trailing Zeros).
+        template<typename T> [[nodiscard]] inline uint32_t FindFirstSetBit(T value) noexcept;
 
-        // Finds the position of the first set bit in the given value starting from the LSB, e.g. FindFirstSetBit(0b00000010) == 1.
-        // This operation is also known as CTZ (Count Trailing Zeros).
-        template <typename T>
-        PDB_NO_DISCARD inline uint32_t FindFirstSetBit(T value) PDB_NO_EXCEPT;
-
-        template <>
-        PDB_NO_DISCARD inline uint32_t FindFirstSetBit(uint32_t value) PDB_NO_EXCEPT
+        template<> [[nodiscard]] inline uint32_t FindFirstSetBit(uint32_t value) noexcept
         {
-            PDB_ASSERT(value != 0u);
+            assert(value != 0u);
 
 #if PDB_COMPILER_MSVC
             unsigned long result = 0u;
@@ -58,5 +49,5 @@ namespace PDB
             static_assert(false, "Unsupported compiler");
 #endif
         }
-    }
-}
+    } // namespace BitUtil
+} // namespace libpdb

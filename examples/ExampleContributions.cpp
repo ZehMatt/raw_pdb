@@ -22,7 +22,7 @@ namespace
 }
 
 
-void ExampleContributions(const PDB::RawFile& rawPdbFile, const PDB::DBIStream& dbiStream)
+void ExampleContributions(const libpdb::RawFile& rawPdbFile, const libpdb::DBIStream& dbiStream)
 {
 	TimedScope total("\nRunning example \"Contributions\"");
 
@@ -31,31 +31,31 @@ void ExampleContributions(const PDB::RawFile& rawPdbFile, const PDB::DBIStream& 
 
 	// prepare the image section stream first. it is needed for converting section + offset into an RVA
 	TimedScope sectionScope("Reading image section stream");
-	const PDB::ImageSectionStream imageSectionStream = dbiStream.CreateImageSectionStream(rawPdbFile);
+	const libpdb::ImageSectionStream imageSectionStream = dbiStream.CreateImageSectionStream(rawPdbFile);
 	sectionScope.Done();
 
 
 	// prepare the module info stream for matching contributions against files
 	TimedScope moduleScope("Reading module info stream");
-	const PDB::ModuleInfoStream moduleInfoStream = dbiStream.CreateModuleInfoStream(rawPdbFile);
+	const libpdb::ModuleInfoStream moduleInfoStream = dbiStream.CreateModuleInfoStream(rawPdbFile);
 	moduleScope.Done();
 
 
 	// read contribution stream
 	TimedScope contributionScope("Reading section contribution stream");
-	const PDB::SectionContributionStream sectionContributionStream = dbiStream.CreateSectionContributionStream(rawPdbFile);
+	const libpdb::SectionContributionStream sectionContributionStream = dbiStream.CreateSectionContributionStream(rawPdbFile);
 	contributionScope.Done();
 
 	std::vector<Contribution> contributions;
 	{
 		TimedScope scope("Storing contributions");
 
-		const PDB::ArrayView<PDB::DBI::SectionContribution> sectionContributions = sectionContributionStream.GetContributions();
+		const libpdb::ArrayView<libpdb::DBI::SectionContribution> sectionContributions = sectionContributionStream.GetContributions();
 		const size_t count = sectionContributions.GetLength();
 
 		contributions.reserve(count);
 
-		for (const PDB::DBI::SectionContribution& contribution : sectionContributions)
+		for (const libpdb::DBI::SectionContribution& contribution : sectionContributions)
 		{
 			const uint32_t rva = imageSectionStream.ConvertSectionOffsetToRVA(contribution.section, contribution.offset);
 			if (rva == 0u)
@@ -64,7 +64,7 @@ void ExampleContributions(const PDB::RawFile& rawPdbFile, const PDB::DBIStream& 
 				continue;
 			}
 
-			const PDB::ModuleInfoStream::Module& module = moduleInfoStream.GetModule(contribution.moduleIndex);
+			const libpdb::ModuleInfoStream::Module& module = moduleInfoStream.GetModule(contribution.moduleIndex);
 
 			contributions.push_back(Contribution { module.GetName().Decay(), rva, contribution.size });
 		}

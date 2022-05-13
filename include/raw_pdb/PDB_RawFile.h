@@ -1,49 +1,43 @@
-// Copyright 2011-2022, Molecular Matters GmbH <office@molecular-matters.com>
-// See LICENSE.txt for licensing details (2-clause BSD License: https://opensource.org/licenses/BSD-2-Clause)
-
 #pragma once
 
-#include "Foundation/PDB_Macros.h"
-#include "Foundation/PDB_DisableWarningsPush.h"
-#include <cstdint>
 #include "Foundation/PDB_DisableWarningsPop.h"
+#include "Foundation/PDB_DisableWarningsPush.h"
+#include "Foundation/PDB_Macros.h"
 #include "PDB_CoalescedMSFStream.h"
 
+#include <cstdint>
 
 // https://llvm.org/docs/PDB/index.html
-namespace PDB
+namespace libpdb
 {
-	struct SuperBlock;
+    struct SuperBlock;
 
+    class [[nodiscard]] RawFile
+    {
+    public:
+        RawFile(RawFile&& other) noexcept;
+        RawFile& operator=(RawFile&& other) noexcept;
 
-	class PDB_NO_DISCARD RawFile
-	{
-	public:
-		RawFile(RawFile&& other) PDB_NO_EXCEPT;
-		RawFile& operator=(RawFile&& other) PDB_NO_EXCEPT;
+        explicit RawFile(const void* data) noexcept;
 
-		explicit RawFile(const void* data) PDB_NO_EXCEPT;
+        ~RawFile(void) noexcept;
 
-		~RawFile(void) PDB_NO_EXCEPT;
+        // Creates any type of MSF stream.
+        template<typename T> [[nodiscard]] T CreateMSFStream(uint32_t streamIndex) const noexcept;
 
-		// Creates any type of MSF stream.
-		template <typename T>
-		PDB_NO_DISCARD T CreateMSFStream(uint32_t streamIndex) const PDB_NO_EXCEPT;
+        // Creates any type of MSF stream with the given size.
+        template<typename T> [[nodiscard]] T CreateMSFStream(uint32_t streamIndex, uint32_t streamSize) const noexcept;
 
-		// Creates any type of MSF stream with the given size.
-		template <typename T>
-		PDB_NO_DISCARD T CreateMSFStream(uint32_t streamIndex, uint32_t streamSize) const PDB_NO_EXCEPT;
+    private:
+        const void* m_data;
+        const SuperBlock* m_superBlock;
+        CoalescedMSFStream m_directoryStream;
 
-	private:
-		const void* m_data;
-		const SuperBlock* m_superBlock;
-		CoalescedMSFStream m_directoryStream;
+        // stream directory
+        uint32_t m_streamCount;
+        const uint32_t* m_streamSizes;
+        const uint32_t** m_streamBlocks;
 
-		// stream directory
-		uint32_t m_streamCount;
-		const uint32_t* m_streamSizes;
-		const uint32_t** m_streamBlocks;
-
-		PDB_DISABLE_COPY(RawFile);
-	};
-}
+        PDB_DISABLE_COPY(RawFile);
+    };
+} // namespace libpdb

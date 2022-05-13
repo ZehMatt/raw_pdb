@@ -20,7 +20,7 @@ namespace
 }
 
 
-void ExampleFunctionSymbols(const PDB::RawFile& rawPdbFile, const PDB::DBIStream& dbiStream)
+void ExampleFunctionSymbols(const libpdb::RawFile& rawPdbFile, const libpdb::DBIStream& dbiStream)
 {
 	TimedScope total("\nRunning example \"Function symbols\"");
 
@@ -29,19 +29,19 @@ void ExampleFunctionSymbols(const PDB::RawFile& rawPdbFile, const PDB::DBIStream
 
 	// prepare the image section stream first. it is needed for converting section + offset into an RVA
 	TimedScope sectionScope("Reading image section stream");
-	const PDB::ImageSectionStream imageSectionStream = dbiStream.CreateImageSectionStream(rawPdbFile);
+	const libpdb::ImageSectionStream imageSectionStream = dbiStream.CreateImageSectionStream(rawPdbFile);
 	sectionScope.Done();
 
 
 	// prepare the module info stream for grabbing function symbols from modules
 	TimedScope moduleScope("Reading module info stream");
-	const PDB::ModuleInfoStream moduleInfoStream = dbiStream.CreateModuleInfoStream(rawPdbFile);
+	const libpdb::ModuleInfoStream moduleInfoStream = dbiStream.CreateModuleInfoStream(rawPdbFile);
 	moduleScope.Done();
 
 
 	// prepare symbol record stream needed by the public stream
 	TimedScope symbolStreamScope("Reading symbol record stream");
-	const PDB::CoalescedMSFStream symbolRecordStream = dbiStream.CreateSymbolRecordStream(rawPdbFile);
+	const libpdb::CoalescedMSFStream symbolRecordStream = dbiStream.CreateSymbolRecordStream(rawPdbFile);
 	symbolStreamScope.Done();
 
 
@@ -55,25 +55,25 @@ void ExampleFunctionSymbols(const PDB::RawFile& rawPdbFile, const PDB::DBIStream
 	{
 		TimedScope scope("Storing function symbols from modules");
 
-		const PDB::ArrayView<PDB::ModuleInfoStream::Module> modules = moduleInfoStream.GetModules();
+		const libpdb::ArrayView<libpdb::ModuleInfoStream::Module> modules = moduleInfoStream.GetModules();
 
-		for (const PDB::ModuleInfoStream::Module& module : modules)
+		for (const libpdb::ModuleInfoStream::Module& module : modules)
 		{
 			if (!module.HasSymbolStream())
 			{
 				continue;
 			}
 
-			const PDB::ModuleSymbolStream moduleSymbolStream = module.CreateSymbolStream(rawPdbFile);
-			moduleSymbolStream.ForEachSymbol([&functionSymbols, &seenFunctionRVAs, &imageSectionStream](const PDB::CodeView::DBI::Record* record)
+			const libpdb::ModuleSymbolStream moduleSymbolStream = module.CreateSymbolStream(rawPdbFile);
+			moduleSymbolStream.ForEachSymbol([&functionSymbols, &seenFunctionRVAs, &imageSectionStream](const libpdb::CodeView::DBI::Record* record)
 			{
 				// only grab function symbols from the module streams
 				const char* name = nullptr;
 				uint32_t rva = 0u;
 				uint32_t size = 0u;
-				if (record->header.kind == PDB::CodeView::DBI::SymbolRecordKind::S_THUNK32)
+				if (record->header.kind == libpdb::CodeView::DBI::SymbolRecordKind::S_THUNK32)
 				{
-					if (record->data.S_THUNK32.thunk == PDB::CodeView::DBI::ThunkOrdinal::TrampolineIncremental)
+					if (record->data.S_THUNK32.thunk == libpdb::CodeView::DBI::ThunkOrdinal::TrampolineIncremental)
 					{
 						// we have never seen incremental linking thunks stored inside a S_THUNK32 symbol, but better safe than sorry
 						name = "ILT";
@@ -81,32 +81,32 @@ void ExampleFunctionSymbols(const PDB::RawFile& rawPdbFile, const PDB::DBIStream
 						size = 5u;
 					}
 				}
-				else if (record->header.kind == PDB::CodeView::DBI::SymbolRecordKind::S_TRAMPOLINE)
+				else if (record->header.kind == libpdb::CodeView::DBI::SymbolRecordKind::S_TRAMPOLINE)
 				{
 					// incremental linking thunks are stored in the linker module
 					name = "ILT";
 					rva = imageSectionStream.ConvertSectionOffsetToRVA(record->data.S_TRAMPOLINE.thunkSection, record->data.S_TRAMPOLINE.thunkOffset);
 					size = 5u;
 				}
-				else if (record->header.kind == PDB::CodeView::DBI::SymbolRecordKind::S_LPROC32)
+				else if (record->header.kind == libpdb::CodeView::DBI::SymbolRecordKind::S_LPROC32)
 				{
 					name = record->data.S_LPROC32.name;
 					rva = imageSectionStream.ConvertSectionOffsetToRVA(record->data.S_LPROC32.section, record->data.S_LPROC32.offset);
 					size = record->data.S_LPROC32.codeSize;
 				}
-				else if (record->header.kind == PDB::CodeView::DBI::SymbolRecordKind::S_GPROC32)
+				else if (record->header.kind == libpdb::CodeView::DBI::SymbolRecordKind::S_GPROC32)
 				{
 					name = record->data.S_GPROC32.name;
 					rva = imageSectionStream.ConvertSectionOffsetToRVA(record->data.S_GPROC32.section, record->data.S_GPROC32.offset);
 					size = record->data.S_GPROC32.codeSize;
 				}
-				else if (record->header.kind == PDB::CodeView::DBI::SymbolRecordKind::S_LPROC32_ID)
+				else if (record->header.kind == libpdb::CodeView::DBI::SymbolRecordKind::S_LPROC32_ID)
 				{
 					name = record->data.S_LPROC32_ID.name;
 					rva = imageSectionStream.ConvertSectionOffsetToRVA(record->data.S_LPROC32_ID.section, record->data.S_LPROC32_ID.offset);
 					size = record->data.S_LPROC32_ID.codeSize;
 				}
-				else if (record->header.kind == PDB::CodeView::DBI::SymbolRecordKind::S_GPROC32_ID)
+				else if (record->header.kind == libpdb::CodeView::DBI::SymbolRecordKind::S_GPROC32_ID)
 				{
 					name = record->data.S_GPROC32_ID.name;
 					rva = imageSectionStream.ConvertSectionOffsetToRVA(record->data.S_GPROC32_ID.section, record->data.S_GPROC32_ID.offset);
@@ -132,18 +132,18 @@ void ExampleFunctionSymbols(const PDB::RawFile& rawPdbFile, const PDB::DBIStream
 
 	// read public symbols
 	TimedScope publicScope("Reading public symbol stream");
-	const PDB::PublicSymbolStream publicSymbolStream = dbiStream.CreatePublicSymbolStream(rawPdbFile);
+	const libpdb::PublicSymbolStream publicSymbolStream = dbiStream.CreatePublicSymbolStream(rawPdbFile);
 	publicScope.Done();
 	{
 		TimedScope scope("Storing public function symbols");
 
-		const PDB::ArrayView<PDB::HashRecord> hashRecords = publicSymbolStream.GetRecords();
+		const libpdb::ArrayView<libpdb::HashRecord> hashRecords = publicSymbolStream.GetRecords();
 		const size_t count = hashRecords.GetLength();
 
-		for (const PDB::HashRecord& hashRecord : hashRecords)
+		for (const libpdb::HashRecord& hashRecord : hashRecords)
 		{
-			const PDB::CodeView::DBI::Record* record = publicSymbolStream.GetRecord(symbolRecordStream, hashRecord);
-			if ((PDB_AS_UNDERLYING(record->data.S_PUB32.flags) & PDB_AS_UNDERLYING(PDB::CodeView::DBI::PublicSymbolFlags::Function)) == 0u)
+			const libpdb::CodeView::DBI::Record* record = publicSymbolStream.GetRecord(symbolRecordStream, hashRecord);
+			if ((PDB_AS_UNDERLYING(record->data.S_PUB32.flags) & PDB_AS_UNDERLYING(libpdb::CodeView::DBI::PublicSymbolFlags::Function)) == 0u)
 			{
 				// ignore everything that is not a function
 				continue;
@@ -215,9 +215,9 @@ void ExampleFunctionSymbols(const PDB::RawFile& rawPdbFile, const PDB::DBIStream
 		{
 			// bad luck, we can't deduce the last symbol's size, so have to consult the contributions instead.
 			// we do a linear search in this case to keep the code simple.
-			const PDB::SectionContributionStream sectionContributionStream = dbiStream.CreateSectionContributionStream(rawPdbFile);
-			const PDB::ArrayView<PDB::DBI::SectionContribution> sectionContributions = sectionContributionStream.GetContributions();
-			for (const PDB::DBI::SectionContribution& contribution : sectionContributions)
+			const libpdb::SectionContributionStream sectionContributionStream = dbiStream.CreateSectionContributionStream(rawPdbFile);
+			const libpdb::ArrayView<libpdb::DBI::SectionContribution> sectionContributions = sectionContributionStream.GetContributions();
+			for (const libpdb::DBI::SectionContribution& contribution : sectionContributions)
 			{
 				const uint32_t rva = imageSectionStream.ConvertSectionOffsetToRVA(contribution.section, contribution.offset);
 				if (rva == 0u)
