@@ -37,55 +37,47 @@ set(CMKR_TARGET raw_pdb)
 set(raw_pdb_SOURCES "")
 
 list(APPEND raw_pdb_SOURCES
+	"src/CoalescedMSFStream.cpp"
+	"src/DBIStream.cpp"
+	"src/DirectMSFStream.cpp"
+	"src/GlobalSymbolStream.cpp"
+	"src/IPIStream.cpp"
+	"src/ImageSectionStream.cpp"
+	"src/InfoStream.cpp"
+	"src/ModuleInfoStream.cpp"
+	"src/ModuleSymbolStream.cpp"
 	"src/PDB.cpp"
-	"src/PDB_CoalescedMSFStream.cpp"
-	"src/PDB_DBIStream.cpp"
-	"src/PDB_DBITypes.cpp"
-	"src/PDB_DirectMSFStream.cpp"
-	"src/PDB_GlobalSymbolStream.cpp"
-	"src/PDB_IPIStream.cpp"
-	"src/PDB_ImageSectionStream.cpp"
-	"src/PDB_InfoStream.cpp"
-	"src/PDB_ModuleInfoStream.cpp"
-	"src/PDB_ModuleSymbolStream.cpp"
-	"src/PDB_PublicSymbolStream.cpp"
-	"src/PDB_RawFile.cpp"
-	"src/PDB_SectionContributionStream.cpp"
-	"src/PDB_SourceFileStream.cpp"
-	"src/PDB_Types.cpp"
-	"include/raw_pdb/Foundation/PDB_ArrayView.h"
-	"include/raw_pdb/Foundation/PDB_Assert.h"
-	"include/raw_pdb/Foundation/PDB_BitOperators.h"
-	"include/raw_pdb/Foundation/PDB_BitUtil.h"
-	"include/raw_pdb/Foundation/PDB_DisableWarningsPop.h"
-	"include/raw_pdb/Foundation/PDB_DisableWarningsPush.h"
-	"include/raw_pdb/Foundation/PDB_Forward.h"
-	"include/raw_pdb/Foundation/PDB_Log.h"
-	"include/raw_pdb/Foundation/PDB_Macros.h"
-	"include/raw_pdb/Foundation/PDB_Memory.h"
-	"include/raw_pdb/Foundation/PDB_Move.h"
-	"include/raw_pdb/Foundation/PDB_Platform.h"
-	"include/raw_pdb/Foundation/PDB_PointerUtil.h"
-	"include/raw_pdb/Foundation/PDB_Warnings.h"
+	"src/PublicSymbolStream.cpp"
+	"src/RawFile.cpp"
+	"src/SectionContributionStream.cpp"
+	"src/SourceFileStream.cpp"
+	"include/raw_pdb/CoalescedMSFStream.h"
+	"include/raw_pdb/Core/ArrayView.h"
+	"include/raw_pdb/Core/BaseTypes.h"
+	"include/raw_pdb/Core/BitOperators.h"
+	"include/raw_pdb/Core/BitUtil.h"
+	"include/raw_pdb/Core/FlexibleStruct.h"
+	"include/raw_pdb/Core/Platform.h"
+	"include/raw_pdb/Core/PointerUtil.h"
+	"include/raw_pdb/Core/TypeTraits.h"
+	"include/raw_pdb/DBIStream.h"
+	"include/raw_pdb/DBITypes.h"
+	"include/raw_pdb/DirectMSFStream.h"
+	"include/raw_pdb/ErrorCodes.h"
+	"include/raw_pdb/GlobalSymbolStream.h"
+	"include/raw_pdb/IPIStream.h"
+	"include/raw_pdb/IPITypes.h"
+	"include/raw_pdb/ImageSectionStream.h"
+	"include/raw_pdb/InfoStream.h"
+	"include/raw_pdb/ModuleInfoStream.h"
+	"include/raw_pdb/ModuleSymbolStream.h"
 	"include/raw_pdb/PDB.h"
-	"include/raw_pdb/PDB_CoalescedMSFStream.h"
-	"include/raw_pdb/PDB_DBIStream.h"
-	"include/raw_pdb/PDB_DBITypes.h"
-	"include/raw_pdb/PDB_DirectMSFStream.h"
-	"include/raw_pdb/PDB_ErrorCodes.h"
-	"include/raw_pdb/PDB_GlobalSymbolStream.h"
-	"include/raw_pdb/PDB_IPIStream.h"
-	"include/raw_pdb/PDB_IPITypes.h"
-	"include/raw_pdb/PDB_ImageSectionStream.h"
-	"include/raw_pdb/PDB_InfoStream.h"
-	"include/raw_pdb/PDB_ModuleInfoStream.h"
-	"include/raw_pdb/PDB_ModuleSymbolStream.h"
-	"include/raw_pdb/PDB_PublicSymbolStream.h"
-	"include/raw_pdb/PDB_RawFile.h"
-	"include/raw_pdb/PDB_SectionContributionStream.h"
-	"include/raw_pdb/PDB_SourceFileStream.h"
-	"include/raw_pdb/PDB_Types.h"
-	"include/raw_pdb/PDB_Util.h"
+	"include/raw_pdb/PDBTypes.h"
+	"include/raw_pdb/PublicSymbolStream.h"
+	"include/raw_pdb/RawFile.h"
+	"include/raw_pdb/SectionContributionStream.h"
+	"include/raw_pdb/SourceFileStream.h"
+	"include/raw_pdb/Util.h"
 )
 
 list(APPEND raw_pdb_SOURCES
@@ -103,7 +95,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${raw_pdb_SOURCES})
 
 add_library(raw_pdb::raw_pdb ALIAS raw_pdb)
 target_compile_features(raw_pdb PUBLIC
-	cxx_std_11
+	cxx_std_14
 )
 
 target_include_directories(raw_pdb PUBLIC
@@ -130,10 +122,8 @@ list(APPEND examples_SOURCES
 	"examples/ExampleMemoryMappedFile.cpp"
 	"examples/ExampleSymbols.cpp"
 	"examples/ExampleTimedScope.cpp"
-	"examples/Examples_PCH.cpp"
 	"examples/ExampleMemoryMappedFile.h"
 	"examples/ExampleTimedScope.h"
-	"examples/Examples_PCH.h"
 )
 
 list(APPEND examples_SOURCES
@@ -155,7 +145,7 @@ endif()
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${examples_SOURCES})
 
 target_compile_features(examples PRIVATE
-	cxx_std_11
+	cxx_std_14
 )
 
 target_include_directories(examples PRIVATE
@@ -163,6 +153,47 @@ target_include_directories(examples PRIVATE
 )
 
 target_link_libraries(examples PRIVATE
+	raw_pdb::raw_pdb
+)
+
+unset(CMKR_TARGET)
+unset(CMKR_SOURCES)
+
+# Target fuzztarget
+set(CMKR_TARGET fuzztarget)
+set(fuzztarget_SOURCES "")
+
+list(APPEND fuzztarget_SOURCES
+	"fuzztarget/Main.cpp"
+)
+
+list(APPEND fuzztarget_SOURCES
+	cmake.toml
+)
+
+set(CMKR_SOURCES ${fuzztarget_SOURCES})
+add_executable(fuzztarget)
+
+if(fuzztarget_SOURCES)
+	target_sources(fuzztarget PRIVATE ${fuzztarget_SOURCES})
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT fuzztarget)
+endif()
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${fuzztarget_SOURCES})
+
+target_compile_features(fuzztarget PRIVATE
+	cxx_std_14
+)
+
+target_include_directories(fuzztarget PRIVATE
+	fuzztarget
+)
+
+target_link_libraries(fuzztarget PRIVATE
 	raw_pdb::raw_pdb
 )
 

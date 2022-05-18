@@ -15,7 +15,7 @@ sources = [
 	"include/raw_pdb/**.cpp",
 	"include/raw_pdb/**.h",
 ]
-compile-features = ["cxx_std_11"]
+compile-features = ["cxx_std_14"]
 include-directories = ["include"]
 private-include-directories = ["src", "include/raw_pdb"]
 link-libraries = [
@@ -27,8 +27,20 @@ sources = [
 	"examples/**.cpp",
 	"examples/**.h",
 ]
-compile-features = ["cxx_std_11"]
+compile-features = ["cxx_std_14"]
 private-include-directories = ["examples"]
+link-libraries = [
+	"raw_pdb::raw_pdb"
+]
+
+[target.fuzztarget]
+type = "executable"
+sources = [
+	"fuzztarget/**.cpp",
+	"fuzztarget/**.h",
+]
+compile-features = ["cxx_std_14"]
+private-include-directories = ["fuzztarget"]
 link-libraries = [
 	"raw_pdb::raw_pdb"
 ]

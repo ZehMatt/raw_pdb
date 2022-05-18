@@ -1,22 +1,20 @@
 // Copyright 2011-2022, Molecular Matters GmbH <office@molecular-matters.com>
 // See LICENSE.txt for licensing details (2-clause BSD License: https://opensource.org/licenses/BSD-2-Clause)
 
-#include <raw_pdb/Foundation/PDB_Macros.h>
 #include <chrono>
-
 
 class TimedScope
 {
 public:
-	explicit TimedScope(const char* message);
+    explicit TimedScope(const char* message);
+    TimedScope(TimedScope&& other) = delete;
+    TimedScope(const TimedScope& other) = delete;
 
-	void Done(void) const;
-	void Done(size_t count) const;
+    void Done(void) const;
+    void Done(size_t count) const;
 
 private:
-	double ReadMilliseconds(void) const;
+    double ReadMilliseconds(void) const;
 
-	const std::chrono::high_resolution_clock::time_point m_begin;
-
-	PDB_DISABLE_COPY_MOVE(TimedScope);
+    const std::chrono::high_resolution_clock::time_point m_begin;
 };

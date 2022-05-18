@@ -2,39 +2,39 @@
 // See LICENSE.txt for licensing details (2-clause BSD License: https://opensource.org/licenses/BSD-2-Clause)
 
 #include "ExampleMemoryMappedFile.h"
-#include "Examples_PCH.h"
 
+#include <cstdio>
+#include <raw_pdb/DBIStream.h>
+#include <raw_pdb/InfoStream.h>
 #include <raw_pdb/PDB.h>
-#include <raw_pdb/PDB_DBIStream.h>
-#include <raw_pdb/PDB_InfoStream.h>
-#include <raw_pdb/PDB_RawFile.h>
+#include <raw_pdb/RawFile.h>
 
 namespace
 {
-    [[nodiscard]] static bool IsError(libpdb::ErrorCode errorCode)
+    [[nodiscard]] static bool IsError(raw_pdb::ErrorCode errorCode)
     {
         switch (errorCode)
         {
-            case libpdb::ErrorCode::Success:
+            case raw_pdb::ErrorCode::Success:
                 return false;
 
-            case libpdb::ErrorCode::InvalidSuperBlock:
+            case raw_pdb::ErrorCode::InvalidSuperBlock:
                 printf("Invalid Superblock\n");
                 return true;
 
-            case libpdb::ErrorCode::InvalidFreeBlockMap:
+            case raw_pdb::ErrorCode::InvalidFreeBlockMap:
                 printf("Invalid free block map\n");
                 return true;
 
-            case libpdb::ErrorCode::InvalidSignature:
+            case raw_pdb::ErrorCode::InvalidSignature:
                 printf("Invalid stream signature\n");
                 return true;
 
-            case libpdb::ErrorCode::InvalidStreamIndex:
+            case raw_pdb::ErrorCode::InvalidStreamIndex:
                 printf("Invalid stream index\n");
                 return true;
 
-            case libpdb::ErrorCode::UnknownVersion:
+            case raw_pdb::ErrorCode::UnknownVersion:
                 printf("Unknown version\n");
                 return true;
         }
@@ -43,7 +43,7 @@ namespace
         return true;
     }
 
-    [[nodiscard]] static bool HasValidDBIStreams(const libpdb::RawFile& rawPdbFile, const libpdb::DBIStream& dbiStream)
+    [[nodiscard]] static bool HasValidDBIStreams(const raw_pdb::RawFile& rawPdbFile, const raw_pdb::DBIStream& dbiStream)
     {
         // check whether the DBI stream offers all sub-streams we need
         if (IsError(dbiStream.HasValidImageSectionStream(rawPdbFile)))
@@ -71,16 +71,16 @@ namespace
 } // namespace
 
 // declare all examples
-extern void ExampleSymbols(const libpdb::RawFile&, const libpdb::DBIStream&);
-extern void ExampleContributions(const libpdb::RawFile&, const libpdb::DBIStream&);
-extern void ExampleFunctionSymbols(const libpdb::RawFile&, const libpdb::DBIStream&);
+extern void ExampleSymbols(const raw_pdb::RawFile&, const raw_pdb::DBIStream&);
+extern void ExampleContributions(const raw_pdb::RawFile&, const raw_pdb::DBIStream&);
+extern void ExampleFunctionSymbols(const raw_pdb::RawFile&, const raw_pdb::DBIStream&);
 
-int main(void)
+int main(int)
 {
 #ifdef _DEBUG
-    const wchar_t* const pdbPath = LR"(..\bin\x64\Debug\Examples.pdb)";
+    const wchar_t* const pdbPath = LR"(F:\C++\AVM\msvc\Debug\avm_symbols.pdb)";
 #else
-    const wchar_t* const pdbPath = LR"(..\bin\x64\Release\Examples.pdb)";
+    const wchar_t* const pdbPath = LR"(F:\C++\AVM\msvc\Debug\remotecli.pdb)";
 #endif
 
     printf("Opening PDB file %ls\n", pdbPath);
@@ -94,22 +94,22 @@ int main(void)
         return 1;
     }
 
-    if (IsError(libpdb::ValidateFile(pdbFile.baseAddress)))
+    if (IsError(raw_pdb::ValidateFile(pdbFile.baseAddress, pdbFile.fileSize)))
     {
         MemoryMappedFile::Close(pdbFile);
 
         return 2;
     }
 
-    const libpdb::RawFile rawPdbFile = libpdb::CreateRawFile(pdbFile.baseAddress);
-    if (IsError(libpdb::HasValidDBIStream(rawPdbFile)))
+    const raw_pdb::RawFile rawPdbFile = raw_pdb::CreateRawFile(pdbFile.baseAddress, pdbFile.fileSize);
+    if (IsError(raw_pdb::HasValidDBIStream(rawPdbFile)))
     {
         MemoryMappedFile::Close(pdbFile);
 
         return 3;
     }
 
-    const libpdb::InfoStream infoStream(rawPdbFile);
+    const raw_pdb::InfoStream infoStream(rawPdbFile);
     if (infoStream.UsesDebugFastLink())
     {
         printf("PDB was linked using unsupported option /DEBUG:FASTLINK\n");
@@ -119,7 +119,7 @@ int main(void)
         return 4;
     }
 
-    const libpdb::DBIStream dbiStream = libpdb::CreateDBIStream(rawPdbFile);
+    const raw_pdb::DBIStream dbiStream = raw_pdb::CreateDBIStream(rawPdbFile);
     if (!HasValidDBIStreams(rawPdbFile, dbiStream))
     {
         MemoryMappedFile::Close(pdbFile);

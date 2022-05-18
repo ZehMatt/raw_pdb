@@ -1,20 +1,21 @@
+// Copyright 2011-2022, Molecular Matters GmbH <office@molecular-matters.com>
+// See LICENSE for licensing details (2-clause BSD License: https://opensource.org/licenses/BSD-2-Clause)
+
 #include "PDB.h"
 
-#include "Foundation/PDB_DisableWarningsPop.h"
-#include "Foundation/PDB_DisableWarningsPush.h"
-#include "Foundation/PDB_PointerUtil.h"
-#include "PDB_RawFile.h"
-#include "PDB_Types.h"
-#include "PDB_Util.h"
+#include "Core/PointerUtil.h"
+#include "PDBTypes.h"
+#include "RawFile.h"
+#include "Util.h"
 
 #include <cstring>
 
-namespace libpdb
+namespace raw_pdb
 {
 
     // ------------------------------------------------------------------------------------------------
     // ------------------------------------------------------------------------------------------------
-    [[nodiscard]] ErrorCode ValidateFile(const void* data) noexcept
+    ErrorCode ValidateFile(const void* data, size_t dataSize) noexcept
     {
         // validate the super block
         const SuperBlock* superBlock = Pointer::Offset<const SuperBlock*>(data, 0u);
@@ -38,9 +39,9 @@ namespace libpdb
 
     // ------------------------------------------------------------------------------------------------
     // ------------------------------------------------------------------------------------------------
-    [[nodiscard]] RawFile CreateRawFile(const void* data) noexcept
+    RawFile CreateRawFile(const void* data, size_t dataSize) noexcept
     {
-        return RawFile(data);
+        return RawFile(data, dataSize);
     }
 
-} // namespace libpdb
+} // namespace raw_pdb
